@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import csv
+import io
 import random
 from typing import List, Dict, Optional
 
@@ -40,6 +41,12 @@ class Family:
     def num_gifts_needed(self) -> int:
         return self.num_presents - len(self.target_names)
 
+    @property
+    def targets(self) -> List["Family"]:
+        for clan in clans.values():
+            for family in clan.families:
+                if family.name in self.target_names:
+                    yield family
 
 class Clan:
 
@@ -110,25 +117,36 @@ def assign(seed=2303):
     parse("blank_2021.csv")
     while any([clan.num_gifts_owed>0 for clan in clans.values()]):
         clans_owing = [clan for clan in clans.values() if clan.num_gifts_needed > 0]
+        max_clan_owing = max([clan.num_gifts_needed for clan in clans_owing])
+
         for clan in clans_owing:
+            if clan.num_gifts_needed != max_clan_owing:
+                continue
             giver = clan.giver()
             possible_receivers = [other_clan.receiver(giver) for other_clan in clans.values() if other_clan.name != clan.name]
             possible_receivers = [receiver for receiver in possible_receivers if receiver is not None]
             if len(possible_receivers) == 0:
-                return
+                continue
+
             receiver = random.choice(possible_receivers)
 
-            if giver.name not in receiver.receive_from_names:
-                giver.target_names.append(receiver.name)
-                receiver.receive_from_names.append(giver.name)
+            if giver.name in receiver.receive_from_names:
+                continue
+            if len(giver.target_names) > 3:
+                continue
+            giver.target_names.append(receiver.name)
+            receiver.receive_from_names.append(giver.name)
 
 
-assign(2303)
+seed = 2303
+assign(seed)
+
+# show results
+output = io.StringIO()
+writer = csv.writer(output, quoting=csv.QUOTE_NONNUMERIC)
+writer.writerow(["Giver", "Receiver", "Shipping Address", "Email Address", "Suggestions/Hints"])
 for clan in clans.values():
-    print(f"Clan {clan.name}:")
     for family in clan.families:
-        for target_name in family.target_names:
-            print(f"\t{family.name} gives to {target_name}")
-        for receive_name in family.receive_from_names:
-            print(f"\t{family.name} receives from {receive_name}")
-        print("")
+        for target in family.targets:
+            writer.writerow([family.name, target.name, target.shipping_address, target.email_address, target.hints])
+print(output.getvalue())
