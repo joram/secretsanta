@@ -2,6 +2,7 @@
 
 import csv
 import io
+import pprint
 import random
 from typing import List, Dict, Optional
 
@@ -112,9 +113,9 @@ def parse(filepath: str = "data.csv"):
             ))
 
 
-def assign(seed=2303):
+def assign(seed=2303, num_targets=3, filename="blank_2021.csv"):
     random.seed(seed)
-    parse("blank_2021.csv")
+    parse(filename)
     while any([clan.num_gifts_owed>0 for clan in clans.values()]):
         clans_owing = [clan for clan in clans.values() if clan.num_gifts_needed > 0]
         max_clan_owing = max([clan.num_gifts_needed for clan in clans_owing])
@@ -132,14 +133,13 @@ def assign(seed=2303):
 
             if giver.name in receiver.receive_from_names:
                 continue
-            if len(giver.target_names) > 3:
+            if len(giver.target_names) > num_targets:
                 continue
             giver.target_names.append(receiver.name)
             receiver.receive_from_names.append(giver.name)
 
 
-seed = 2303
-assign(seed)
+assign(2304, 3, "./csvs/example_clan_2021.csv")
 
 # show results
 output = io.StringIO()
