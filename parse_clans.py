@@ -2,9 +2,8 @@
 
 import csv
 import io
-import pprint
 import random
-from typing import List, Dict, Optional
+from typing import List, Optional
 
 
 class Person:
@@ -88,27 +87,25 @@ def parse(filepath: str = "data.csv", presents: int = 1):
 
 
 def assign(seed, presents, filename):
-    global people
-
     done = False
     while not done:
-        seed += 1
         random.seed(seed)
         people = parse(filename, presents)
-        print(f"people {people}")
-        # assign targets
         while not done:
             people_owing_gifts = [person for person in people if person.num_gifts_needed > 0]
             if len(people_owing_gifts) == 0:
-                done = True
-                break
+                return people
 
+            restart = False
             for giver in people_owing_gifts:
                 target = giver.get_another_target(people)
                 if target is None:
-                    print("no valid target for", giver)
-                    continue
-    return people
+                    restart = True
+                    break
+            if restart:
+                print("Restarting")
+                break
+        seed += 1
 
 
 if __name__ == "__main__":
