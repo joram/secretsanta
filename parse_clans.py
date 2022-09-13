@@ -8,6 +8,11 @@ from typing import List, Dict, Optional
 
 clans = {}
 
+# Alex sort into clans
+# Spotcheck: jeannie/tom or betty/greg don't get Jody
+# Alex/John memorize the seed number once good
+
+
 
 class Family:
     name: str = ""
